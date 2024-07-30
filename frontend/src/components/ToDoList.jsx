@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { fetchData, saveData, deleteData } from './apiService';
 import ToDo from './Todo';
 import Spinner from 'react-bootstrap/Spinner';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import Swal from 'sweetalert2';
 
 const ToDoList = () => {
   const [data, setData] = useState([]);
@@ -37,12 +36,35 @@ const ToDoList = () => {
   };
 
   const handleOnDelete = async (id) => {
-    try {
-      await deleteData(id);
-      getData();
-    } catch (error) {
-      console.error("Error saving data:", error);
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteData(id)
+          .then(() => {
+            Swal.fire(
+              'Deleted!',
+              'Your task has been deleted.',
+              'success'
+            );
+            getData();
+          })
+          .catch((error) => {
+            console.error("Error deleting data:", error);
+            Swal.fire(
+              'Error!',
+              'There was a problem deleting your task.',
+              'error'
+            );
+          });
+      }
+    });
   };
 
   return (
@@ -55,7 +77,7 @@ const ToDoList = () => {
       ) : (
         <ToDo data={data} onSave={handleSaveData} onDelete={handleOnDelete} />
       )}
-    </div> 
+    </div>
   );
 };
 
